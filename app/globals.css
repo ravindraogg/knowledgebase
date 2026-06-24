@@ -47,19 +47,24 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
 
-  --radius-sm: calc(var(--radius) * 0.6);
+  /* Spatial radius scale — generous rounding on every component */
+  --radius-sm: calc(var(--radius) * 0.65);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-xl: calc(var(--radius) * 1.35);
+  --radius-2xl: calc(var(--radius) * 1.75);
   --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-4xl: calc(var(--radius) * 2.7);
+
+  --shadow-spatial-sm: var(--spatial-shadow-sm);
+  --shadow-spatial: var(--spatial-shadow);
+  --shadow-spatial-lg: var(--spatial-shadow-lg);
 }
 
 /* Light theme */
 :root {
   color-scheme: light;
-  --background: oklch(0.985 0 0);
+  --background: oklch(0.97 0.004 264);
   --foreground: oklch(0.205 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.205 0 0);
@@ -88,7 +93,7 @@
   --node-code: oklch(0.62 0.15 150);
   --node-decision: oklch(0.7 0.16 60);
   --node-work: oklch(0.58 0.17 300);
-  --radius: 0.625rem;
+  --radius: 1.15rem;
   --sidebar: oklch(0.97 0 0);
   --sidebar-foreground: oklch(0.205 0 0);
   --sidebar-primary: oklch(0.55 0.2 264);
@@ -97,22 +102,37 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.9 0 0);
   --sidebar-ring: oklch(0.55 0.2 264);
+
+  /* Spatial surface system */
+  --glass: oklch(1 0 0 / 0.66);
+  --glass-border: oklch(0.205 0 0 / 0.08);
+  --glass-highlight: oklch(1 0 0 / 0.7);
+  --spatial-shadow-sm: 0 1px 2px oklch(0.2 0 0 / 0.05),
+    0 4px 12px -4px oklch(0.2 0 0 / 0.1);
+  --spatial-shadow: 0 1px 1px oklch(0.2 0 0 / 0.04),
+    0 8px 24px -10px oklch(0.2 0 0 / 0.14),
+    0 24px 56px -24px oklch(0.2 0 0 / 0.18);
+  --spatial-shadow-lg: 0 2px 4px oklch(0.2 0 0 / 0.05),
+    0 18px 40px -16px oklch(0.2 0 0 / 0.18),
+    0 48px 96px -40px oklch(0.2 0 0 / 0.24);
+  --ambient-1: oklch(0.55 0.2 264 / 0.1);
+  --ambient-2: oklch(0.6 0.15 150 / 0.07);
 }
 
 /* Dark theme (primary) */
 .dark {
   color-scheme: dark;
-  --background: oklch(0.165 0.004 285);
+  --background: oklch(0.155 0.006 285);
   --foreground: oklch(0.95 0 0);
-  --card: oklch(0.205 0.005 285);
+  --card: oklch(0.215 0.006 285);
   --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.205 0.005 285);
+  --popover: oklch(0.22 0.006 285);
   --popover-foreground: oklch(0.95 0 0);
   --primary: oklch(0.62 0.19 264);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.26 0.006 285);
+  --secondary: oklch(0.27 0.006 285);
   --secondary-foreground: oklch(0.95 0 0);
-  --muted: oklch(0.25 0.006 285);
+  --muted: oklch(0.26 0.006 285);
   --muted-foreground: oklch(0.68 0.005 285);
   --accent: oklch(0.3 0.04 264);
   --accent-foreground: oklch(0.9 0.03 264);
@@ -135,10 +155,25 @@
   --sidebar-foreground: oklch(0.95 0 0);
   --sidebar-primary: oklch(0.62 0.19 264);
   --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.26 0.006 285);
+  --sidebar-accent: oklch(0.27 0.006 285);
   --sidebar-accent-foreground: oklch(0.95 0 0);
   --sidebar-border: oklch(1 0 0 / 9%);
   --sidebar-ring: oklch(0.62 0.19 264);
+
+  /* Spatial surface system */
+  --glass: oklch(0.24 0.006 285 / 0.62);
+  --glass-border: oklch(1 0 0 / 0.1);
+  --glass-highlight: oklch(1 0 0 / 0.08);
+  --spatial-shadow-sm: 0 1px 2px oklch(0 0 0 / 0.3),
+    0 4px 14px -4px oklch(0 0 0 / 0.45);
+  --spatial-shadow: 0 1px 1px oklch(0 0 0 / 0.3),
+    0 10px 28px -12px oklch(0 0 0 / 0.55),
+    0 28px 64px -28px oklch(0 0 0 / 0.6);
+  --spatial-shadow-lg: 0 2px 4px oklch(0 0 0 / 0.35),
+    0 20px 44px -16px oklch(0 0 0 / 0.6),
+    0 56px 110px -44px oklch(0 0 0 / 0.7);
+  --ambient-1: oklch(0.62 0.19 264 / 0.16);
+  --ambient-2: oklch(0.7 0.15 155 / 0.1);
 }
 
 @layer base {
@@ -147,9 +182,38 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(60rem 60rem at 12% -8%, var(--ambient-1), transparent 60%),
+      radial-gradient(50rem 50rem at 105% 110%, var(--ambient-2), transparent 55%);
+    background-attachment: fixed;
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer components {
+  /* Frosted floating surface — the core spatial primitive */
+  .glass-panel {
+    background-color: var(--glass);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--spatial-shadow);
+  }
+  .glass-panel-sm {
+    background-color: var(--glass);
+    -webkit-backdrop-filter: blur(16px) saturate(170%);
+    backdrop-filter: blur(16px) saturate(170%);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--spatial-shadow-sm);
+  }
+  /* Subtle top highlight to convey a light source from above */
+  .spatial-raise {
+    box-shadow: var(--spatial-shadow);
+  }
+  .spatial-raise-lg {
+    box-shadow: var(--spatial-shadow-lg);
   }
 }
 

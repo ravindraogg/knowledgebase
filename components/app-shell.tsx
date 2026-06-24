@@ -44,11 +44,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-svh overflow-hidden">
+    <div className="flex h-svh gap-3 overflow-hidden p-3">
       <AppSidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col gap-3">
         <AppTopbar title={title} />
-        <main className="min-h-0 flex-1 overflow-hidden">{children}</main>
+        <main className="glass-panel min-h-0 flex-1 overflow-hidden rounded-3xl">
+          {children}
+        </main>
       </div>
     </div>
   )

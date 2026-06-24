@@ -32,7 +32,7 @@ export function AppTopbar({ title }: { title: string }) {
   if (!member || !org) return null
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border bg-background/80 px-4 backdrop-blur">
+    <header className="glass-panel flex h-14 shrink-0 items-center justify-between gap-4 rounded-3xl px-4">
       <div className="flex items-center gap-3">
         <h1 className="text-base font-semibold tracking-tight">{title}</h1>
       </div>

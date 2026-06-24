@@ -35,9 +35,9 @@ export function AppSidebar() {
   const items = NAV_ITEMS.filter((item) => can(item.permission))
 
   return (
-    <aside className="hidden w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
-      <div className="flex h-14 items-center gap-2 border-b border-sidebar-border px-4">
-        <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
+    <aside className="glass-panel hidden w-60 shrink-0 flex-col overflow-hidden rounded-3xl md:flex">
+      <div className="flex h-14 items-center gap-2 border-b border-sidebar-border/60 px-4">
+        <div className="flex size-7 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-spatial-sm">
           <GitGraph className="size-4" />
         </div>
         <div className="flex flex-col leading-tight">
@@ -57,9 +57,9 @@ export function AppSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                'flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition-all',
                 active
-                  ? 'bg-sidebar-accent text-foreground'
+                  ? 'bg-sidebar-accent text-foreground shadow-spatial-sm'
                   : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground',
               )}
             >
@@ -72,7 +72,7 @@ export function AppSidebar() {
         })}
       </nav>
 
-      <div className="border-t border-sidebar-border p-3">
+      <div className="border-t border-sidebar-border/60 p-3">
         <p className="text-pretty font-mono text-[10px] leading-relaxed text-muted-foreground">
           Intelligence layer is mocked. Connect GitHub, Jira & Slack to ingest
           real data.
