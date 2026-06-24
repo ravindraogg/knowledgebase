@@ -3,9 +3,9 @@
 import { useState } from "react"
 import useSWR, { mutate } from "swr"
 import {
-  Github,
-  Trello,
-  Slack,
+  GitBranch,
+  SquareKanban,
+  MessagesSquare,
   Check,
   RefreshCw,
   Loader2,
@@ -28,22 +28,22 @@ import {
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 
-const META: Record<ConnectorType, { name: string; icon: typeof Github; blurb: string; accent: string }> = {
+const META: Record<ConnectorType, { name: string; icon: typeof GitBranch; blurb: string; accent: string }> = {
   github: {
     name: "GitHub",
-    icon: Github,
+    icon: GitBranch,
     blurb: "Pull requests, commits, and code reviews",
     accent: "text-foreground",
   },
   jira: {
     name: "Jira",
-    icon: Trello,
+    icon: SquareKanban,
     blurb: "Issues, tickets, and project history",
     accent: "text-[oklch(0.6_0.18_250)]",
   },
   slack: {
     name: "Slack",
-    icon: Slack,
+    icon: MessagesSquare,
     blurb: "Public channel discussions and decisions",
     accent: "text-[oklch(0.7_0.16_330)]",
   },
