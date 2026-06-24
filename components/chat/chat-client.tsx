@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import {
   ArrowUp,
   MessageSquarePlus,
@@ -29,6 +30,7 @@ function initials(name: string) {
 export function ChatClient() {
   const { member, org } = useAuth()
   const store = useChatStore(org?.id ?? '', member?.user.id ?? '')
+  const searchParams = useSearchParams()
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const [streamText, setStreamText] = useState('')
@@ -36,6 +38,12 @@ export function ChatClient() {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const messages = store.activeSession?.messages ?? []
+
+  // Prefill the composer from a ?q= deep link (e.g. "Ask about this" in the graph).
+  useEffect(() => {
+    const q = searchParams.get('q')
+    if (q) setInput(q)
+  }, [searchParams])
 
   useEffect(() => {
     scrollRef.current?.scrollTo({

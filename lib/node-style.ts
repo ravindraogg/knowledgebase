@@ -50,3 +50,5 @@ export const NODE_STYLES: Record<NodeType, NodeStyle> = {
     shape: 'hexagon',
   },
 }
+
+export const allNodeTypes: NodeType[] = ['person', 'code', 'decision', 'work_item']
