@@ -1,11 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import useSWR from "swr"
+import useSWR, { mutate } from "swr"
 import { Loader2, UserPlus } from "lucide-react"
 import type { OrganizationMember, Role } from "@/lib/types"
 import { ROLE_LABELS, ROLE_DESCRIPTIONS } from "@/lib/rbac"
 import { fetcher } from "@/lib/fetcher"
+import { apiFetch } from "@/lib/api"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -43,6 +44,15 @@ export function MembersClient({ canManage }: { canManage: boolean }) {
   const [inviteOpen, setInviteOpen] = useState(false)
 
   const members = data?.members ?? []
+
+  async function changeRole(memberId: string, role: Role) {
+    setRoles((p) => ({ ...p, [memberId]: role }))
+    await apiFetch(`/api/members/${memberId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ role }),
+    })
+    mutate("/api/members")
+  }
 
   if (!data) {
     return (
@@ -95,7 +105,7 @@ export function MembersClient({ canManage }: { canManage: boolean }) {
                   </td>
                   <td className="px-4 py-3">
                     {canManage ? (
-                      <Select value={role} onValueChange={(v) => setRoles((p) => ({ ...p, [m.id]: v as Role }))}>
+                      <Select value={role} onValueChange={(v) => changeRole(m.id, v as Role)}>
                         <SelectTrigger className="w-36">
                           <SelectValue />
                         </SelectTrigger>

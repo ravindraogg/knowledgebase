@@ -29,6 +29,7 @@ interface AuthContextValue {
   signup: (input: { email: string; name: string; password: string; orgName: string }) => Promise<void>
   logout: () => void
   setOrg: (org: Organization) => void
+  refresh: () => Promise<void>
   can: (permission: Permission) => boolean
 }
 
@@ -94,6 +95,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession((prev) => (prev ? { ...prev, org } : prev))
   }, [])
 
+  const refresh = useCallback(async () => {
+    if (!getToken()) return
+    const data = await apiFetch<SessionState>('/api/auth/me')
+    setSession(data)
+  }, [])
+
   const value = useMemo<AuthContextValue>(
     () => ({
       member: session?.member ?? null,
@@ -104,10 +111,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signup,
       logout,
       setOrg,
+      refresh,
       can: (permission: Permission) =>
         session ? canDo(session.member.role, permission) : false,
     }),
-    [session, loading, login, signup, logout, setOrg],
+    [session, loading, login, signup, logout, setOrg, refresh],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

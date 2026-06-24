@@ -1,6 +1,6 @@
 import { query } from "./db"
 
-const HF_MODEL = process.env.HF_MODEL || "Qwen/Qwen2.5-32B-Instruct"
+const HF_MODEL = process.env.HF_MODEL || "Qwen/Qwen2.5-72B-Instruct"
 const HF_API_KEY = process.env.HF_API_KEY
 // OpenAI-compatible router endpoint for Hugging Face inference providers.
 const HF_ENDPOINT = "https://router.huggingface.co/v1/chat/completions"

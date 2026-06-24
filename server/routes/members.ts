@@ -17,7 +17,7 @@ membersRouter.get("/", async (req: AuthedRequest, res) => {
       order by m.joined_at asc`,
     [req.auth!.orgId],
   )
-  res.json(rows.map(mapMember))
+  res.json({ members: rows.map(mapMember) })
 })
 
 // PATCH /api/members/:id  — change role (admin only)

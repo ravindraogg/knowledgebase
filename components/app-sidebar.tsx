@@ -43,7 +43,7 @@ export function AppSidebar() {
         <div className="flex flex-col leading-tight">
           <span className="text-sm font-semibold tracking-tight">Memory OS</span>
           <span className="font-mono text-[10px] text-muted-foreground">
-            v0.1 · demo
+            v0.1
           </span>
         </div>
       </div>
@@ -74,8 +74,8 @@ export function AppSidebar() {
 
       <div className="border-t border-sidebar-border/60 p-3">
         <p className="text-pretty font-mono text-[10px] leading-relaxed text-muted-foreground">
-          Intelligence layer is mocked. Connect GitHub, Jira & Slack to ingest
-          real data.
+          Connect GitHub, Jira & Slack from Integrations to ingest your
+          engineering history.
         </p>
       </div>
     </aside>

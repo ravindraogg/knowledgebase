@@ -65,8 +65,8 @@ export function CitationPanel({
         </div>
 
         <p className="mt-4 text-pretty text-xs text-muted-foreground">
-          This is seeded demo content. Once the backend is connected, citations
-          link to the live artifact in GitHub, Jira, or Slack.
+          Retrieved from your ingested engineering history. Citations reference
+          the source artifact from GitHub, Jira, or Slack.
         </p>
       </div>
     </div>

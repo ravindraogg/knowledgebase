@@ -75,13 +75,12 @@ export function ConnectorsClient({ canManage }: { canManage: boolean }) {
   async function confirmConnect() {
     if (!dialogConnector) return
     setConnecting(true)
-    await fetch("/api/connectors", {
+    // Brief delay mirrors the OAuth consent round-trip before persisting.
+    await new Promise((r) => setTimeout(r, 900))
+    await apiFetch(`/api/connectors/${dialogConnector.type}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: dialogConnector.type, action: "connect" }),
+      body: JSON.stringify({ action: "connect" }),
     })
-    // Simulate OAuth round-trip latency.
-    await new Promise((r) => setTimeout(r, 1200))
     setOptimistic((p) => ({ ...p, [dialogConnector.id]: "connected" }))
     setConnecting(false)
     setDialogType(null)
@@ -90,13 +89,13 @@ export function ConnectorsClient({ canManage }: { canManage: boolean }) {
 
   async function triggerSync(c: Connector) {
     setOptimistic((p) => ({ ...p, [c.id]: "syncing" }))
-    await fetch("/api/connectors", {
+    await new Promise((r) => setTimeout(r, 1200))
+    await apiFetch(`/api/connectors/${c.type}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: c.type, action: "sync" }),
+      body: JSON.stringify({ action: "sync" }),
     })
-    await new Promise((r) => setTimeout(r, 1400))
     setOptimistic((p) => ({ ...p, [c.id]: "connected" }))
+    mutate("/api/connectors")
   }
 
   return (

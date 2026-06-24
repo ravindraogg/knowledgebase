@@ -1,8 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { Cloud, Server, Building2, Trash2, Shield } from "lucide-react"
+import { Cloud, Server, Building2, Trash2, Shield, Loader2 } from "lucide-react"
 import { useAuth } from "@/components/auth-context"
+import { apiFetch } from "@/lib/api"
 import { MembersClient } from "@/components/settings/members-client"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -12,9 +13,27 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
 export default function SettingsPage() {
-  const { org, member, can } = useAuth()
+  const { org, member, can, refresh } = useAuth()
   const canManage = can("settings")
   const [mode, setMode] = useState(org?.deploymentMode ?? "cloud")
+  const [name, setName] = useState(org?.name ?? "")
+  const [saving, setSaving] = useState(false)
+
+  async function saveProfile() {
+    setSaving(true)
+    try {
+      await apiFetch("/api/org", { method: "PATCH", body: JSON.stringify({ name }) })
+      await refresh()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function changeMode(next: "cloud" | "byoc") {
+    setMode(next)
+    await apiFetch("/api/org", { method: "PATCH", body: JSON.stringify({ deploymentMode: next }) })
+    await refresh()
+  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">
@@ -42,7 +61,12 @@ export default function SettingsPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="org-name">Organization name</Label>
-              <Input id="org-name" defaultValue={org?.name} disabled={!canManage} />
+              <Input
+                id="org-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={!canManage}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="org-id">Organization ID</Label>
@@ -51,7 +75,10 @@ export default function SettingsPage() {
           </div>
           {canManage && (
             <div className="flex justify-end">
-              <Button size="sm">Save changes</Button>
+              <Button size="sm" onClick={saveProfile} disabled={saving || !name.trim()}>
+                {saving && <Loader2 className="size-4 animate-spin" />}
+                Save changes
+              </Button>
             </div>
           )}
         </CardContent>
@@ -76,7 +103,7 @@ export default function SettingsPage() {
               <button
                 key={opt.id}
                 disabled={!canManage}
-                onClick={() => setMode(opt.id)}
+                onClick={() => changeMode(opt.id)}
                 className={cn(
                   "flex flex-col items-start gap-2 rounded-lg border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-70",
                   active ? "border-primary bg-primary/5" : "border-border hover:bg-accent",
