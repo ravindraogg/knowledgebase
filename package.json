@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "concurrently -k -n next,api -c blue,magenta \"next dev\" \"pnpm dev:api\"",
+    "dev:api": "node --env-file-if-exists=/vercel/share/.env.project --env-file-if-exists=.env.development.local --import tsx --watch server/index.ts",
+    "dev:next": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint ."

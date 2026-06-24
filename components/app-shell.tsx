@@ -17,18 +17,14 @@ const TITLES: Record<string, string> = {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
-  const { isAuthenticated, member } = useAuth()
+  const { isAuthenticated, member, loading } = useAuth()
 
   useEffect(() => {
-    // Client-side guard mirrors the middleware for the mock session.
-    if (member === null && !isAuthenticated) {
-      const raw =
-        typeof window !== 'undefined'
-          ? localStorage.getItem('emos.session')
-          : null
-      if (!raw) router.replace('/login')
+    // Client-side guard: once the session has resolved, bounce out if unauthenticated.
+    if (!loading && !isAuthenticated) {
+      router.replace('/login')
     }
-  }, [isAuthenticated, member, router])
+  }, [loading, isAuthenticated, router])
 
   const title =
     Object.entries(TITLES).find(([prefix]) =>

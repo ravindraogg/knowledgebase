@@ -3,15 +3,31 @@
 import useSWR from "swr"
 import { AlertTriangle, Users, ShieldAlert, UserMinus, Loader2 } from "lucide-react"
 import type { ModuleRisk } from "@/lib/types"
-import type { RiskSummary } from "@/lib/risk-engine"
 import { fetcher } from "@/lib/fetcher"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
-interface RiskResponse {
-  summary: RiskSummary
-  modules: ModuleRisk[]
+interface RiskSummary {
+  modulesAtRisk: number
+  averageBusFactor: number
+  knowledgeConcentrationScore: number
+  pendingOffboardingRisks: number
+}
+
+function computeSummary(modules: ModuleRisk[]): RiskSummary {
+  if (modules.length === 0) {
+    return { modulesAtRisk: 0, averageBusFactor: 0, knowledgeConcentrationScore: 0, pendingOffboardingRisks: 0 }
+  }
+  const modulesAtRisk = modules.filter((m) => m.busFactor <= 2).length
+  const averageBusFactor =
+    modules.reduce((sum, m) => sum + m.busFactor, 0) / modules.length
+  const knowledgeConcentrationScore = Math.round(
+    modules.reduce((sum, m) => sum + m.knowledgeConcentration, 0) / modules.length,
+  )
+  // Single-owner modules represent the highest offboarding exposure.
+  const pendingOffboardingRisks = modules.filter((m) => m.busFactor <= 1).length
+  return { modulesAtRisk, averageBusFactor, knowledgeConcentrationScore, pendingOffboardingRisks }
 }
 
 function busFactorTone(bf: number) {
@@ -24,9 +40,9 @@ function busFactorTone(bf: number) {
 const KPI_ICONS = { AlertTriangle, Users, ShieldAlert, UserMinus }
 
 export function RiskClient() {
-  const { data, isLoading } = useSWR<RiskResponse>("/api/risk", fetcher)
+  const { data: modules, isLoading } = useSWR<ModuleRisk[]>("/api/risk", fetcher)
 
-  if (isLoading || !data) {
+  if (isLoading || !modules) {
     return (
       <div className="flex h-64 items-center justify-center text-muted-foreground">
         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -35,7 +51,19 @@ export function RiskClient() {
     )
   }
 
-  const { summary, modules } = data
+  if (modules.length === 0) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-2 text-center text-muted-foreground">
+        <p className="text-sm font-medium text-foreground">No risk data yet</p>
+        <p className="max-w-sm text-sm text-pretty">
+          Once your repositories are ingested, module bus-factor and knowledge concentration
+          metrics will appear here.
+        </p>
+      </div>
+    )
+  }
+
+  const summary = computeSummary(modules)
 
   const kpis = [
     {

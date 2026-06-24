@@ -1,8 +1,7 @@
 'use client'
 
-// Mock auth/RBAC context for the UI shell. Holds the current session (user +
-// role + org). A future Supabase Auth implementation can replace the internals
-// while keeping this hook's surface identical.
+// Auth/RBAC context backed by the Express + Postgres API. Holds the current
+// session (member + org) resolved from a bearer token stored in localStorage.
 
 import {
   createContext,
@@ -12,11 +11,9 @@ import {
   useMemo,
   useState,
 } from 'react'
-import { DEMO_MEMBERS, DEMO_ORG } from '@/lib/mock-data'
-import type { Organization, OrganizationMember, Role } from '@/lib/types'
+import type { Organization, OrganizationMember } from '@/lib/types'
 import { can as canDo, type Permission } from '@/lib/rbac'
-
-const SESSION_KEY = 'emos.session'
+import { apiFetch, getToken, setToken } from '@/lib/api'
 
 interface SessionState {
   member: OrganizationMember
@@ -26,10 +23,12 @@ interface SessionState {
 interface AuthContextValue {
   member: OrganizationMember | null
   org: Organization | null
+  loading: boolean
   isAuthenticated: boolean
-  login: (email: string) => void
+  login: (email: string, password: string) => Promise<void>
+  signup: (input: { email: string; name: string; password: string; orgName: string }) => Promise<void>
   logout: () => void
-  setRole: (role: Role) => void
+  setOrg: (org: Organization) => void
   can: (permission: Permission) => boolean
 }
 
@@ -37,16 +36,22 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<SessionState | null>(null)
-  const [hydrated, setHydrated] = useState(false)
+  const [loading, setLoading] = useState(true)
 
+  // Resolve the session from a stored token on mount.
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(SESSION_KEY)
-      if (raw) setSession(JSON.parse(raw))
-    } catch {
-      // ignore
+    const token = getToken()
+    if (!token) {
+      setLoading(false)
+      return
     }
-    setHydrated(true)
+    apiFetch<SessionState>('/api/auth/me')
+      .then((data) => setSession(data))
+      .catch(() => {
+        setToken(null)
+        setSession(null)
+      })
+      .finally(() => setLoading(false))
   }, [])
 
   // Mirror the role into a cookie so server middleware can gate routes.
@@ -59,57 +64,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session])
 
-  const persist = useCallback((next: SessionState | null) => {
-    setSession(next)
-    try {
-      if (next) localStorage.setItem(SESSION_KEY, JSON.stringify(next))
-      else localStorage.removeItem(SESSION_KEY)
-    } catch {
-      // ignore
-    }
+  const login = useCallback(async (email: string, password: string) => {
+    const data = await apiFetch<{ token: string } & SessionState>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    })
+    setToken(data.token)
+    setSession({ member: data.member, org: data.org })
   }, [])
 
-  const login = useCallback(
-    (email: string) => {
-      const matched =
-        DEMO_MEMBERS.find(
-          (m) => m.user.email.toLowerCase() === email.toLowerCase(),
-        ) ?? DEMO_MEMBERS[0]
-      persist({ member: matched, org: DEMO_ORG })
-    },
-    [persist],
-  )
-
-  const logout = useCallback(() => persist(null), [persist])
-
-  const setRole = useCallback(
-    (role: Role) => {
-      setSession((prev) => {
-        if (!prev) return prev
-        const next = { ...prev, member: { ...prev.member, role } }
-        try {
-          localStorage.setItem(SESSION_KEY, JSON.stringify(next))
-        } catch {
-          // ignore
-        }
-        return next
+  const signup = useCallback(
+    async (input: { email: string; name: string; password: string; orgName: string }) => {
+      const data = await apiFetch<{ token: string } & SessionState>('/api/auth/signup', {
+        method: 'POST',
+        body: JSON.stringify(input),
       })
+      setToken(data.token)
+      setSession({ member: data.member, org: data.org })
     },
     [],
   )
+
+  const logout = useCallback(() => {
+    setToken(null)
+    setSession(null)
+  }, [])
+
+  const setOrg = useCallback((org: Organization) => {
+    setSession((prev) => (prev ? { ...prev, org } : prev))
+  }, [])
 
   const value = useMemo<AuthContextValue>(
     () => ({
       member: session?.member ?? null,
       org: session?.org ?? null,
-      isAuthenticated: hydrated && !!session,
+      loading,
+      isAuthenticated: !!session,
       login,
+      signup,
       logout,
-      setRole,
+      setOrg,
       can: (permission: Permission) =>
         session ? canDo(session.member.role, permission) : false,
     }),
-    [session, hydrated, login, logout, setRole],
+    [session, loading, login, signup, logout, setOrg],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

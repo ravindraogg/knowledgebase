@@ -1,123 +1,96 @@
 'use client'
 
-// Local chat-session store for the demo shell. Persists sessions to
-// localStorage so history survives reloads. A real build would persist
-// chat_sessions / chat_messages to Postgres via the API.
+// Chat-session store backed by the API (Postgres). Sessions and messages are
+// persisted server-side; SWR keeps the client cache in sync.
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
+import useSWR from 'swr'
 import type { ChatMessage, ChatSession } from '@/lib/types'
+import { apiFetch } from '@/lib/api'
+import { fetcher } from '@/lib/fetcher'
 
-const STORE_KEY = 'emos.chat.sessions'
+const KEY = '/api/chat/sessions'
 
-function uid() {
-  return Math.random().toString(36).slice(2, 10)
-}
-
-function load(): ChatSession[] {
-  try {
-    const raw = localStorage.getItem(STORE_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch {
-    // ignore
-  }
-  return []
-}
-
-export function useChatStore(orgId: string, userId: string) {
-  const [sessions, setSessions] = useState<ChatSession[]>([])
+export function useChatStore() {
+  const { data, isLoading, mutate } = useSWR<ChatSession[]>(KEY, fetcher)
   const [activeId, setActiveId] = useState<string | null>(null)
-  const [hydrated, setHydrated] = useState(false)
+  const [sending, setSending] = useState(false)
 
-  useEffect(() => {
-    const loaded = load()
-    setSessions(loaded)
-    setActiveId(loaded[0]?.id ?? null)
-    setHydrated(true)
-  }, [])
+  const sessions = data ?? []
+  const resolvedActiveId = activeId ?? sessions[0]?.id ?? null
+  const activeSession = sessions.find((s) => s.id === resolvedActiveId) ?? null
 
-  const persist = useCallback((next: ChatSession[]) => {
-    setSessions(next)
-    try {
-      localStorage.setItem(STORE_KEY, JSON.stringify(next))
-    } catch {
-      // ignore
-    }
-  }, [])
-
-  const newSession = useCallback(() => {
-    const session: ChatSession = {
-      id: uid(),
-      orgId,
-      userId,
-      title: 'New conversation',
-      createdAt: new Date().toISOString(),
-      messages: [],
-    }
-    setSessions((prev) => {
-      const next = [session, ...prev]
-      try {
-        localStorage.setItem(STORE_KEY, JSON.stringify(next))
-      } catch {
-        // ignore
-      }
-      return next
+  const createSession = useCallback(async (): Promise<string> => {
+    const session = await apiFetch<ChatSession>(KEY, {
+      method: 'POST',
+      body: JSON.stringify({}),
     })
+    await mutate((prev) => [session, ...(prev ?? [])], { revalidate: false })
     setActiveId(session.id)
     return session.id
-  }, [orgId, userId])
+  }, [mutate])
 
   const deleteSession = useCallback(
-    (id: string) => {
-      setSessions((prev) => {
-        const next = prev.filter((s) => s.id !== id)
-        try {
-          localStorage.setItem(STORE_KEY, JSON.stringify(next))
-        } catch {
-          // ignore
-        }
-        setActiveId((curr) => (curr === id ? next[0]?.id ?? null : curr))
-        return next
-      })
+    async (id: string) => {
+      await mutate((prev) => (prev ?? []).filter((s) => s.id !== id), { revalidate: false })
+      setActiveId((curr) => (curr === id ? null : curr))
+      await apiFetch(`${KEY}/${id}`, { method: 'DELETE' }).catch(() => {})
     },
-    [],
+    [mutate],
   )
 
-  const appendMessage = useCallback(
-    (sessionId: string, message: ChatMessage) => {
-      setSessions((prev) => {
-        const next = prev.map((s) => {
-          if (s.id !== sessionId) return s
-          const isFirstUser =
-            s.messages.length === 0 && message.role === 'user'
-          return {
-            ...s,
-            title: isFirstUser
-              ? message.content.slice(0, 48)
-              : s.title,
-            messages: [...s.messages, message],
-          }
+  const sendMessage = useCallback(
+    async (content: string) => {
+      let sessionId = resolvedActiveId
+      if (!sessionId) sessionId = await createSession()
+
+      const optimisticUser: ChatMessage = {
+        id: `tmp-${Date.now()}`,
+        role: 'user',
+        content,
+        createdAt: new Date().toISOString(),
+      }
+
+      // Optimistically render the user's message.
+      await mutate(
+        (prev) =>
+          (prev ?? []).map((s) =>
+            s.id === sessionId
+              ? {
+                  ...s,
+                  title: s.title === 'New conversation' ? content.slice(0, 60) : s.title,
+                  messages: [...s.messages, optimisticUser],
+                }
+              : s,
+          ),
+        { revalidate: false },
+      )
+
+      setSending(true)
+      try {
+        await apiFetch(`${KEY}/${sessionId}/messages`, {
+          method: 'POST',
+          body: JSON.stringify({ content }),
         })
-        try {
-          localStorage.setItem(STORE_KEY, JSON.stringify(next))
-        } catch {
-          // ignore
-        }
-        return next
-      })
+      } finally {
+        // Revalidate either way — the user message is persisted server-side
+        // even when answer generation fails.
+        await mutate()
+        setSending(false)
+      }
     },
-    [],
+    [resolvedActiveId, createSession, mutate],
   )
-
-  const activeSession = sessions.find((s) => s.id === activeId) ?? null
 
   return {
     sessions,
     activeSession,
-    activeId,
-    hydrated,
+    activeId: resolvedActiveId,
+    loading: isLoading,
+    sending,
     setActiveId,
-    newSession,
+    createSession,
     deleteSession,
-    appendMessage,
+    sendMessage,
   }
 }

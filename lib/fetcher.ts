@@ -1,8 +1,7 @@
-export const fetcher = (url: string) =>
-  fetch(url).then((res) => {
-    if (!res.ok) throw new Error('Request failed')
-    return res.json()
-  })
+import { apiFetch } from "@/lib/api"
+
+// SWR fetcher that forwards the bearer token to the backend.
+export const fetcher = (url: string) => apiFetch(url)
 
 export function formatRelative(iso: string | null): string {
   if (!iso) return 'Never'

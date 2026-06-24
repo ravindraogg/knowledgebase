@@ -67,7 +67,7 @@ function layout(graph: GraphData): { nodes: Node[]; edges: Edge[] } {
 }
 
 function GraphInner() {
-  const { data: graph, isLoading } = useSWR<GraphData>("/api/graph/query", fetcher)
+  const { data: graph, isLoading } = useSWR<GraphData>("/api/graph", fetcher)
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -119,6 +119,18 @@ function GraphInner() {
       <div className="flex h-full items-center justify-center text-muted-foreground">
         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
         Loading knowledge graph...
+      </div>
+    )
+  }
+
+  if (!graph || graph.nodes.length === 0) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center text-muted-foreground">
+        <p className="text-sm font-medium text-foreground">No knowledge graph yet</p>
+        <p className="max-w-sm text-sm text-pretty">
+          Connect GitHub, Jira, or Slack from the Integrations page to ingest your engineering
+          history and build the memory graph.
+        </p>
       </div>
     )
   }

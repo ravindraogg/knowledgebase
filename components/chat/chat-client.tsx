@@ -13,27 +13,28 @@ import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/components/auth-context'
 import { useChatStore } from '@/lib/use-chat-store'
-import { STARTER_PROMPTS } from '@/lib/ai-chat'
 import { ChatMessage } from '@/components/chat/chat-message'
 import { CitationPanel } from '@/components/chat/citation-panel'
 import { formatRelative } from '@/lib/fetcher'
-import type { Citation, ChatMessage as ChatMessageType } from '@/lib/types'
+import type { Citation } from '@/lib/types'
 
-function uid() {
-  return Math.random().toString(36).slice(2, 10)
-}
+const STARTER_PROMPTS = [
+  'Why did we migrate sessions to rotating JWTs?',
+  'Who owns the payments module and what is the bus factor?',
+  'What changed in the refund engine recently?',
+  'Summarize the decisions behind our auth strategy.',
+]
 
 function initials(name: string) {
   return name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
 }
 
 export function ChatClient() {
-  const { member, org } = useAuth()
-  const store = useChatStore(org?.id ?? '', member?.user.id ?? '')
+  const { member } = useAuth()
+  const store = useChatStore()
   const searchParams = useSearchParams()
   const [input, setInput] = useState('')
-  const [streaming, setStreaming] = useState(false)
-  const [streamText, setStreamText] = useState('')
+  const [error, setError] = useState<string | null>(null)
   const [activeCitation, setActiveCitation] = useState<Citation | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -50,56 +51,23 @@ export function ChatClient() {
       top: scrollRef.current.scrollHeight,
       behavior: 'smooth',
     })
-  }, [messages.length, streamText])
+  }, [messages.length, store.sending])
 
   async function send(text: string) {
     const trimmed = text.trim()
-    if (!trimmed || streaming) return
-
-    let sessionId = store.activeId
-    if (!sessionId) sessionId = store.newSession()
-
-    const userMsg: ChatMessageType = {
-      id: uid(),
-      role: 'user',
-      content: trimmed,
-      createdAt: new Date().toISOString(),
-    }
-    store.appendMessage(sessionId, userMsg)
+    if (!trimmed || store.sending) return
+    setError(null)
     setInput('')
-    setStreaming(true)
-    setStreamText('')
-
     try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: trimmed,
-          history: messages,
-          orgId: org?.id,
-        }),
-      })
-      const reply: ChatMessageType = await res.json()
-
-      // Typewriter effect over the canned content.
-      const full = reply.content
-      for (let i = 1; i <= full.length; i += 3) {
-        setStreamText(full.slice(0, i))
-        await new Promise((r) => setTimeout(r, 12))
-      }
-      setStreamText(full)
-      await new Promise((r) => setTimeout(r, 120))
-      store.appendMessage(sessionId, reply)
-    } finally {
-      setStreaming(false)
-      setStreamText('')
+      await store.sendMessage(trimmed)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to get a response')
     }
   }
 
-  if (!member || !org) return null
+  if (!member) return null
   const userInitials = initials(member.user.name)
-  const isEmpty = messages.length === 0 && !streaming
+  const isEmpty = messages.length === 0 && !store.sending
 
   return (
     <div className="flex h-full min-h-0">
@@ -109,7 +77,7 @@ export function ChatClient() {
           <Button
             variant="outline"
             className="w-full justify-start gap-2"
-            onClick={() => store.newSession()}
+            onClick={() => store.createSession()}
           >
             <MessageSquarePlus className="size-4" />
             New conversation
@@ -174,22 +142,22 @@ export function ChatClient() {
                     onSelectCitation={setActiveCitation}
                   />
                 ))}
-                {streaming && (
+                {store.sending && (
                   <div className="flex gap-3">
                     <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/15">
                       <Sparkles className="size-4 text-primary" />
                     </div>
-                    <div className="min-w-0 max-w-[85%] text-pretty text-sm leading-relaxed text-foreground">
-                      {streamText || (
-                        <span className="inline-flex gap-1">
-                          <Dot /> <Dot /> <Dot />
-                        </span>
-                      )}
-                      {streamText && (
-                        <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse bg-primary align-middle" />
-                      )}
+                    <div className="min-w-0 max-w-[85%] text-pretty text-sm leading-relaxed text-muted-foreground">
+                      <span className="inline-flex items-center gap-1">
+                        <Dot /> <Dot /> <Dot />
+                      </span>
                     </div>
                   </div>
+                )}
+                {error && (
+                  <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                    {error}
+                  </p>
                 )}
               </div>
             )}
@@ -215,7 +183,7 @@ export function ChatClient() {
               />
               <Button
                 size="icon"
-                disabled={!input.trim() || streaming}
+                disabled={!input.trim() || store.sending}
                 onClick={() => send(input)}
                 aria-label="Send message"
               >
@@ -223,7 +191,7 @@ export function ChatClient() {
               </Button>
             </div>
             <p className="mt-2 text-center font-mono text-[10px] text-muted-foreground">
-              Responses are seeded demo data — GraphRAG backend not yet connected.
+              Answers are generated by Qwen over your ingested engineering history.
             </p>
           </div>
         </div>

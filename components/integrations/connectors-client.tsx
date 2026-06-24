@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import type { Connector, ConnectorType, ConnectorStatus } from "@/lib/types"
 import { fetcher } from "@/lib/fetcher"
+import { apiFetch } from "@/lib/api"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
