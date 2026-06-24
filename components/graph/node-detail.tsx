@@ -84,11 +84,13 @@ export function NodeDetail({ node, graph, onClose, onFocusNode }: NodeDetailProp
       </ScrollArea>
 
       <div className="border-t border-border p-4">
-        <Button asChild className="w-full" variant="secondary">
-          <Link href={`/app/chat?q=${encodeURIComponent(`Tell me about ${node.label}`)}`}>
-            <MessageSquare className="h-4 w-4" />
-            Ask about this
-          </Link>
+        <Button
+          variant="secondary"
+          className="w-full"
+          render={<Link href={`/app/chat?q=${encodeURIComponent(`Tell me about ${node.label}`)}`} />}
+        >
+          <MessageSquare className="h-4 w-4" />
+          Ask about this
         </Button>
       </div>
     </div>
