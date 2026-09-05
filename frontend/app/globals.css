@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+:root {
+  --color-bg-base: #f6f8fc;
+  --color-bg-elevated: rgba(255, 255, 255, 0.72);
+  --color-bg-surface: rgba(255, 255, 255, 0.52);
+  --color-bg-overlay: rgba(244, 248, 255, 0.8);
+  --color-bg-input: rgba(255, 255, 255, 0.9);
+  --color-bg-solid: #ffffff;
+  --color-primary: #5b5bd6;
+  --color-primary-hover: #4848bd;
+  --color-primary-subtle: #efefff;
+  --color-primary-glow: rgba(91, 91, 214, 0.16);
+  --color-secondary: #3987a7;
+  --color-accent: #9e6a9c;
+  --color-success: #27875c;
+  --color-warning: #b5791c;
+  --color-error: #c65359;
+  --color-info: #397aaa;
+  --color-text-primary: #202333;
+  --color-text-secondary: #62697d;
+  --color-text-tertiary: #959bad;
+  --color-text-inverse: #ffffff;
+  --color-border-default: rgba(79, 89, 121, 0.13);
+  --color-border-glass: rgba(255, 255, 255, 0.84);
+  --color-border-focus: var(--color-primary);
+  --color-border-subtle: rgba(79, 89, 121, 0.08);
+  --glass-blur: 18px;
+  --shadow-elevation-1: 0 5px 18px rgba(57, 67, 104, 0.05);
+  --shadow-elevation-2: 0 12px 36px rgba(57, 67, 104, 0.08);
+  --shadow-elevation-3: 0 18px 44px rgba(57, 67, 104, 0.12);
+  --shadow-elevation-4: 0 24px 58px rgba(57, 67, 104, 0.15);
+  --radius-sm: 10px; --radius-md: 14px; --radius-lg: 18px; --radius-xl: 24px; --radius-2xl: 30px; --radius-3xl: 38px; --radius-full: 9999px;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px; --space-16: 64px;
+  --ease-out: cubic-bezier(.2,.8,.2,1); --ease-glass: cubic-bezier(.2,.8,.2,1); --duration-fast: 140ms; --duration-normal: 220ms; --duration-slow: 360ms;
+  --sidebar-width: 268px; --sidebar-collapsed: 76px; --topbar-height: 72px;
+}
+
+@theme { --font-sans: 'DM Sans', Arial, sans-serif; --font-mono: 'DM Mono', monospace; }
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body { margin: 0; color: var(--color-text-primary); font-family: var(--font-sans); background-color: var(--color-bg-base); background-image: radial-gradient(circle at 10% 7%, #e8ecff 0, transparent 23rem), radial-gradient(circle at 94% 8%, #e6f4f5 0, transparent 20rem); }
+button, input, textarea { font: inherit; }
+::-webkit-scrollbar { width: 7px; height: 7px; } ::-webkit-scrollbar-thumb { background: #d4d8e5; border-radius: 999px; }
+
+.glass-panel { position: relative; background: var(--color-bg-elevated); backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur)); border: 1px solid var(--color-border-glass); border-radius: var(--radius-lg); box-shadow: var(--shadow-elevation-2); }
+.glass-panel-interactive { transition: transform var(--duration-normal) var(--ease-out), box-shadow var(--duration-normal) var(--ease-out); }
+.glass-panel-interactive:hover, .glass-glow:hover { transform: translateY(-2px); box-shadow: var(--shadow-elevation-3); }
+.bg-unsplash { background-image: none !important; background-color: transparent !important; }
+.bg-unsplash::before { display: none !important; }
+.bg-unsplash .MuiTypography-root { color: var(--color-text-primary) !important; }
+.bg-unsplash .MuiOutlinedInput-root { background: rgba(255,255,255,.88) !important; }
+.bg-unsplash .MuiInputBase-input, .bg-unsplash .MuiInputLabel-root, .bg-unsplash .MuiSvgIcon-root { color: var(--color-text-secondary) !important; }
+.shimmer { background: #edf0f7; animation: shimmer 1.6s ease-in-out infinite; } @keyframes shimmer { 50% { opacity: .45; } }
+@keyframes dotBounce { 0%,80%,100% { transform: scale(.65); opacity:.4; } 40% { transform: scale(1); opacity:1; } }
+@keyframes fadeInUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+.animate-fade-in-up { animation: fadeInUp .45s var(--ease-out) both; }
+
+/* Public and authentication experience */
+.auth-shell { min-height: 100vh; width: 100%; display: grid; grid-template-columns: minmax(420px, 1.1fr) minmax(380px, 0.9fr); background: #f8f9ff; margin: 0; padding: 0; }
+.auth-visual { min-height: 100vh; height: 100%; width: 100%; position: relative; isolation: isolate; overflow: hidden; padding: 0; margin: 0; color: #fff; background: #070a1e url('https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1920&q=80') center/cover no-repeat; display: flex; flex-direction: column; border-radius: 0; }
+.auth-visual-overlay { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(4,7,29,.42), rgba(6,7,31,.24) 40%, rgba(6,7,31,.9)); }
+.auth-brand { color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 800; letter-spacing: -.05em; margin: clamp(32px, 4vw, 48px) clamp(32px, 4vw, 48px) 0; }
+.auth-brand span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; background: linear-gradient(135deg, #8a7dff, #b46de4); box-shadow: 0 8px 24px rgba(151,127,255,.45); }
+.auth-visual-copy { margin-top: auto; max-width: 560px; padding: 0 clamp(32px, 4vw, 48px) 24px; }
+.auth-eyebrow,.auth-kicker { font-size: 11px; letter-spacing: .14em; font-weight: 800; margin: 0 0 16px; color: #b6b1ff; }
+.auth-visual-copy h1 { margin: 0; font-size: clamp(38px, 4.2vw, 62px); line-height: 1.02; letter-spacing: -.065em; }
+.auth-visual-copy > p:not(.auth-eyebrow) { margin: 22px 0; max-width: 440px; font-size: 16px; line-height: 1.65; color: rgba(255,255,255,.78); }
+.auth-visual-copy ul { padding: 0; margin: 0; list-style: none; display: grid; gap: 10px; color: rgba(255,255,255,.88); font-size: 13px; font-weight: 600; }
+.auth-visual-copy li { display: flex; gap: 9px; align-items: center; }.auth-visual-copy li svg { font-size: 17px; color: #a8ffdd; }
+.auth-visual-note { font-size: 11px; color: rgba(255,255,255,.55); letter-spacing: .03em; padding: 0 clamp(32px, 4vw, 48px) clamp(32px, 4vw, 48px); }
+.auth-content { display: grid; place-items: center; padding: 40px 28px; min-width: 0; }
+.auth-form-wrap { width: min(100%, 420px); animation: fadeInUp .5s var(--ease-out) both; }.auth-mobile-brand { display: none; }
+.auth-title { font-size: clamp(30px, 3vw, 39px) !important; letter-spacing: -.055em !important; font-weight: 800 !important; line-height: 1.08 !important; }.auth-subtitle { margin: 10px 0 30px !important; color: var(--color-text-secondary); font-size: 15px; }
+.auth-form { display: grid; gap: 18px; }.auth-form .MuiOutlinedInput-root { border-radius: 12px; background: #fff; }.auth-form .MuiOutlinedInput-notchedOutline { border-color: rgba(68,75,118,.16); }.auth-form .MuiInputAdornment-root svg { color: #8a90a9; font-size: 19px; }.auth-submit { height: 50px; border-radius: 13px !important; margin-top: 4px !important; font-weight: 700 !important; text-transform: none !important; box-shadow: 0 12px 22px rgba(91,91,214,.22) !important; }.auth-switch { text-align: center; margin: 25px 0 15px !important; font-size: 13px; color: var(--color-text-secondary); }.auth-switch a,.auth-back { color: var(--color-primary); font-weight: 700; text-decoration: none; }.auth-back { display: block; text-align: center; font-size: 12px; color: var(--color-text-tertiary); font-weight: 500; }
+@media (max-width: 820px) { .auth-shell { display: block; }.auth-visual { display: none; }.auth-content { min-height: 100vh; padding: 32px 20px; }.auth-mobile-brand { display: block; font-weight: 800; font-size: 20px; letter-spacing: -.05em; margin-bottom: 42px; color: var(--color-primary); } }
+.auth-content .bg-unsplash { padding: 28px 0 !important; width: 100%; min-height: auto !important; }.auth-content .bg-unsplash > div { max-width: 520px !important; }.auth-content .bg-unsplash .MuiCard-root { background: rgba(255,255,255,.92) !important; border: 1px solid rgba(79,89,121,.1) !important; box-shadow: 0 20px 55px rgba(42,46,92,.12) !important; }.auth-content .bg-unsplash .MuiButton-contained { background: linear-gradient(135deg, #5b5bd6, #8763bf) !important; color: #fff !important; }.auth-content .bg-unsplash .MuiOutlinedInput-root { background: #fff !important; }.auth-content .bg-unsplash .MuiInputLabel-root { color: #71788b !important; }

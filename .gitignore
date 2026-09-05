@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+*.env
+
+# Next.js build
+.next/
+*/.next/
+out/
+build/
+dist/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary ingestion directories
+temp_ingest/
+*/temp_ingest/
+scratch/
+scratch_*.mjs
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# TypeScript build info
+*.tsbuildinfo
